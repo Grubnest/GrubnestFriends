@@ -83,7 +83,7 @@ public class FriendMessageListener implements PluginMessageListener
     /**
      * Singleton getter
      *
-     * @return a singleton
+     * @return the instance (singleton)
      */
     public static FriendMessageListener getInstance()
     {

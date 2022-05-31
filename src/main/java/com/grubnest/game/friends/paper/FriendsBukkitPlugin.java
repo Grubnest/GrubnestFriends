@@ -34,6 +34,9 @@ public class FriendsBukkitPlugin extends JavaPlugin
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
     }
 
+    /**
+     * @return the plugin instance
+     */
     public static FriendsBukkitPlugin getInstance()
     {
         return instance;
