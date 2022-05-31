@@ -4,6 +4,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import com.grubnest.game.core.paper.GrubnestCorePlugin;
 import com.grubnest.game.friends.database.FriendDBManager;
+import com.grubnest.game.friends.paper.FriendsBukkitPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -75,7 +76,7 @@ public class FriendMessageListener implements PluginMessageListener
         }
         else
         {
-            GrubnestCorePlugin.getInstance().getLogger().info("ERROR: Read an unknown category name from PluginMessaging in core:friendcommand");
+            FriendsBukkitPlugin.getInstance().getLogger().info("ERROR: Read an unknown category name from PluginMessaging in core:friendcommand");
         }
     }
 

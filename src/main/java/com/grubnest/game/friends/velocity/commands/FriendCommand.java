@@ -27,13 +27,14 @@ public class FriendCommand implements SimpleCommand
     private static FriendCommand INSTANCE = null;
     private final HashMap<String, Date> cooldowns = new HashMap<>();
     private final ChannelIdentifier identifier;
-    private final VelocityPlugin plugin = VelocityPlugin.getInstance();
+    private final VelocityPlugin plugin;
 
     /**
      * Singleton constructor
      */
     private FriendCommand()
     {
+        this.plugin = VelocityPlugin.getInstance();
         this.identifier = MinecraftChannelIdentifier.from("core:friendcommand");
         FriendsVelocityPlugin.getInstance().getServer().getChannelRegistrar().register(this.identifier);
         FriendsVelocityPlugin.getInstance().getServer().getEventManager().register(FriendsVelocityPlugin.getInstance(), this);

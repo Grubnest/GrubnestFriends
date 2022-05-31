@@ -19,13 +19,15 @@ public class UnfriendCommand implements SimpleCommand
 {
 
     private static UnfriendCommand INSTANCE = null;
-    private final VelocityPlugin plugin = VelocityPlugin.getInstance();
+    private final VelocityPlugin plugin;
 
     /**
      * Singleton constructor
      */
     private UnfriendCommand()
-    {}
+    {
+        this.plugin = VelocityPlugin.getInstance();
+    }
 
     /**
      * What should be executed
