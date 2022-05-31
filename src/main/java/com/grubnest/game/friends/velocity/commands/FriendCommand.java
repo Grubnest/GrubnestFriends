@@ -27,15 +27,14 @@ public class FriendCommand implements SimpleCommand
     private static FriendCommand INSTANCE = null;
     private final HashMap<String, Date> cooldowns = new HashMap<>();
     private final ChannelIdentifier identifier;
-    private final VelocityPlugin plugin = (VelocityPlugin) FriendsVelocityPlugin.getInstance().getServer().getPluginManager().getPlugin("velocitycore").get().getInstance().get();
-
-    private final MySQL mySQL = plugin.getMySQL();
+    private final VelocityPlugin plugin;
 
     /**
      * Singleton constructor
      */
     private FriendCommand()
     {
+        this.plugin = VelocityPlugin.getInstance();
         this.identifier = MinecraftChannelIdentifier.from("core:friendcommand");
         FriendsVelocityPlugin.getInstance().getServer().getChannelRegistrar().register(this.identifier);
         FriendsVelocityPlugin.getInstance().getServer().getEventManager().register(FriendsVelocityPlugin.getInstance(), this);
@@ -48,6 +47,9 @@ public class FriendCommand implements SimpleCommand
      */
     @Override
     public void execute(Invocation invocation) {
+
+        final MySQL mySQL = this.plugin.getMySQL();
+
         final CommandSource source = invocation.source();
         if (!(source instanceof Player)) return;
 
@@ -135,7 +137,7 @@ public class FriendCommand implements SimpleCommand
     {
         List<String> friendsNames = new ArrayList<>();
         for (UUID uuid : friendsUUIDs)
-            friendsNames.add(PlayerDBManager.getUsernameFromUUID(mySQL, uuid));
+            friendsNames.add(PlayerDBManager.getUsernameFromUUID(this.plugin.getMySQL(), uuid));
         return friendsNames;
     }
 
@@ -247,7 +249,7 @@ public class FriendCommand implements SimpleCommand
                         UUID friendUUID = UUID.fromString(in.readUTF());
                         Optional<Player> friend = FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID);
 
-                        boolean mutual = FriendDBManager.isFriendAlready(mySQL, friendUUID.toString(), playerUUID.toString());
+                        boolean mutual = FriendDBManager.isFriendAlready(this.plugin.getMySQL(), friendUUID.toString(), playerUUID.toString());
                         String server =
                                 mutual ?
                                     friend.isPresent() ? friend.get().getCurrentServer().get().getServerInfo().getName() : "Offline"

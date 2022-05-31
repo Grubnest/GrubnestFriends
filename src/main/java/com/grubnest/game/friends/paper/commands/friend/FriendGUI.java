@@ -4,6 +4,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.grubnest.game.core.paper.GrubnestCorePlugin;
 import com.grubnest.game.friends.database.PlayerDBManager;
+import com.grubnest.game.friends.paper.FriendsBukkitPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -124,7 +125,7 @@ public class FriendGUI implements Listener
         out.writeUTF(playerUUID.toString());
         for (UUID uuid : uuids)
             out.writeUTF(uuid.toString());
-        GrubnestCorePlugin.getInstance().getServer().sendPluginMessage(GrubnestCorePlugin.getInstance(), "core:friendcommand", out.toByteArray());
+        FriendsBukkitPlugin.getInstance().getServer().sendPluginMessage(FriendsBukkitPlugin.getInstance(), "core:friendcommand", out.toByteArray());
         //Bukkit.broadcastMessage("Request servers for UUIDs " + uuids);
     }
 
@@ -151,7 +152,7 @@ public class FriendGUI implements Listener
 
         gui = Bukkit.createInventory(null, (numberOfRows+1)*9, "Your friends");
         p.openInventory(gui);
-        GrubnestCorePlugin.getInstance().getServer().getPluginManager().registerEvents(this, GrubnestCorePlugin.getInstance());
+        FriendsBukkitPlugin.getInstance().getServer().getPluginManager().registerEvents(this, FriendsBukkitPlugin.getInstance());
 
         this.glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta meta = glass.getItemMeta();
@@ -239,7 +240,7 @@ public class FriendGUI implements Listener
         output.writeUTF("Join");
         output.writeUTF(p.getUniqueId().toString());
         output.writeUTF(friendUUID.toString());
-        p.sendPluginMessage(GrubnestCorePlugin.getInstance(), "core:friendcommand", output.toByteArray());
+        p.sendPluginMessage(FriendsBukkitPlugin.getInstance(), "core:friendcommand", output.toByteArray());
     }
 
     /**

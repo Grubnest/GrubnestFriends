@@ -19,14 +19,15 @@ public class UnfriendCommand implements SimpleCommand
 {
 
     private static UnfriendCommand INSTANCE = null;
-    private final VelocityPlugin plugin = (VelocityPlugin) FriendsVelocityPlugin.getInstance().getServer().getPluginManager().getPlugin("velocitycore").get().getInstance().get();
-    private final MySQL mySQL = plugin.getMySQL();
+    private final VelocityPlugin plugin;
 
     /**
      * Singleton constructor
      */
     private UnfriendCommand()
-    {}
+    {
+        this.plugin = VelocityPlugin.getInstance();
+    }
 
     /**
      * What should be executed
@@ -35,6 +36,8 @@ public class UnfriendCommand implements SimpleCommand
      */
     @Override
     public void execute(Invocation invocation) {
+
+        final MySQL mySQL = this.plugin.getMySQL();
         final CommandSource source = invocation.source();
         if (!(source instanceof Player)) return;
 
@@ -102,14 +105,16 @@ public class UnfriendCommand implements SimpleCommand
     {
         List<String> friendsNames = new ArrayList<>();
         for (UUID uuid : friendsUUIDs)
-            friendsNames.add(PlayerDBManager.getUsernameFromUUID(mySQL, uuid));
+            friendsNames.add(PlayerDBManager.getUsernameFromUUID(this.plugin.getMySQL(), uuid));
         return friendsNames;
     }
 
     public static UnfriendCommand getInstance()
     {
         if (INSTANCE == null)
+        {
             INSTANCE = new UnfriendCommand();
+        }
         return INSTANCE;
     }
 
