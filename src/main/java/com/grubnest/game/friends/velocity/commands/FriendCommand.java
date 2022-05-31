@@ -27,8 +27,9 @@ public class FriendCommand implements SimpleCommand
     private static FriendCommand INSTANCE = null;
     private final HashMap<String, Date> cooldowns = new HashMap<>();
     private final ChannelIdentifier identifier;
+    private final VelocityPlugin plugin = (VelocityPlugin) FriendsVelocityPlugin.getInstance().getServer().getPluginManager().getPlugin("velocitycore").get().getInstance().get();
 
-    private final MySQL mySQL = VelocityPlugin.getInstance().getMySQL();
+    private final MySQL mySQL = plugin.getMySQL();
 
     /**
      * Singleton constructor

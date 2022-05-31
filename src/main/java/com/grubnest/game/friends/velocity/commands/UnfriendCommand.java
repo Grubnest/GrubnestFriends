@@ -19,7 +19,8 @@ public class UnfriendCommand implements SimpleCommand
 {
 
     private static UnfriendCommand INSTANCE = null;
-    private final MySQL mySQL = VelocityPlugin.getInstance().getMySQL();
+    private final VelocityPlugin plugin = (VelocityPlugin) FriendsVelocityPlugin.getInstance().getServer().getPluginManager().getPlugin("velocitycore").get().getInstance().get();
+    private final MySQL mySQL = plugin.getMySQL();
 
     /**
      * Singleton constructor

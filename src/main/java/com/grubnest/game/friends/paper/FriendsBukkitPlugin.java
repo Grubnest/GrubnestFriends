@@ -1,6 +1,7 @@
 package com.grubnest.game.friends.paper;
 
 import com.grubnest.game.friends.paper.commands.friend.FriendMessageListener;
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class FriendsBukkitPlugin extends JavaPlugin
@@ -15,17 +16,18 @@ public class FriendsBukkitPlugin extends JavaPlugin
         this.getServer().getMessenger().registerOutgoingPluginChannel(this, "core:friendcommand");
         this.getServer().getMessenger().registerIncomingPluginChannel(this, "core:friendcommand", FriendMessageListener.getInstance());
 
-        getServer().getLogger().info("GrubnestFriends is enabled on Bukkit!");
-        loadConfig();
+        getServer().getConsoleSender().sendMessage(ChatColor.AQUA + "GrubnestFriends is enabled");
+
+        //loadConfig();
     }
 
     /**
      * Loads the config and enables copying defaults
      */
-    public void loadConfig() {
+    /*public void loadConfig() {
         getConfig().options().copyDefaults(true);
         saveConfig();
-    }
+    }*/
 
     /**
      * Runs when plugin is disabled

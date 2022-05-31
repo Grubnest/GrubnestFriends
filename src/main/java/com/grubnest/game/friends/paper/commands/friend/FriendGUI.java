@@ -2,7 +2,7 @@ package com.grubnest.game.friends.paper.commands.friend;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import com.grubnest.game.core.GrubnestCorePlugin;
+import com.grubnest.game.core.paper.GrubnestCorePlugin;
 import com.grubnest.game.friends.database.PlayerDBManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
