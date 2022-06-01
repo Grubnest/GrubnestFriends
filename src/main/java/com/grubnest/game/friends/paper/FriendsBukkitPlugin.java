@@ -4,16 +4,20 @@ import com.grubnest.game.friends.paper.commands.friend.FriendMessageListener;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class FriendsBukkitPlugin extends JavaPlugin
-{
+/**
+ * The FriendsBukkitPlugin class is the bukkit-side of the plugin GrubnestFriends
+ *
+ * @author NevaZyo
+ * @version 1.0
+ */
+public class FriendsBukkitPlugin extends JavaPlugin {
     private static FriendsBukkitPlugin instance;
 
     /**
      * Runs when plugin is enabled
      */
     @Override
-    public void onEnable()
-    {
+    public void onEnable() {
         instance = this;
 
         //Register Plugin Messaging channels
@@ -27,8 +31,7 @@ public class FriendsBukkitPlugin extends JavaPlugin
      * Runs when plugin is disabled
      */
     @Override
-    public void onDisable()
-    {
+    public void onDisable() {
         //Unregister channels on disable
         this.getServer().getMessenger().unregisterOutgoingPluginChannel(this);
         this.getServer().getMessenger().unregisterIncomingPluginChannel(this);
@@ -37,8 +40,7 @@ public class FriendsBukkitPlugin extends JavaPlugin
     /**
      * @return the plugin instance
      */
-    public static FriendsBukkitPlugin getInstance()
-    {
+    public static FriendsBukkitPlugin getInstance() {
         return instance;
     }
 }

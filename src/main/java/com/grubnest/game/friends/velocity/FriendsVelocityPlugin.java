@@ -13,18 +13,24 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.slf4j.Logger;
 
+import java.sql.SQLException;
+
+/**
+ * The FriendsVelocityPlugin class is the proxy-side of the plugin GrubnestFriends
+ *
+ * @author NevaZyo
+ * @version 1.0
+ */
 @Plugin(id="grubnestfriends", name="Grubnest Friends Plugin", version="0.1.0-SNAPSHOT",
         url="https://grubnest.com", description="Grubnest Friends running on Velocity", authors={"NevaZyo"})
-public class FriendsVelocityPlugin
-{
+public class FriendsVelocityPlugin {
 
     private final ProxyServer server;
     private final Logger logger;
     private static FriendsVelocityPlugin instance;
 
     @Inject
-    public FriendsVelocityPlugin(ProxyServer server, Logger logger)
-    {
+    public FriendsVelocityPlugin(ProxyServer server, Logger logger) {
         this.server = server;
         this.logger = logger;
         this.logger.info("GrubnestFriends is enabled on Velocity!");
@@ -37,8 +43,7 @@ public class FriendsVelocityPlugin
      * @param e ProxyInitializeEvent
      */
     @Subscribe
-    public void onProxyInitialization(ProxyInitializeEvent e)
-    {
+    public void onProxyInitialization(ProxyInitializeEvent e) {
         CommandManager commandManager = server.getCommandManager();
         commandManager.register("friend", FriendCommand.getInstance());
         commandManager.register("unfriend", UnfriendCommand.getInstance());
@@ -50,10 +55,17 @@ public class FriendsVelocityPlugin
     /**
      * Creates all needed database tables
      */
-    private void createTables()
-    {
-        FriendDBManager.createTable(VelocityPlugin.getInstance().getMySQL());
-        PlayerDBManager.createTable(VelocityPlugin.getInstance().getMySQL());
+    private void createTables() {
+        try {
+            FriendDBManager.createTable(VelocityPlugin.getInstance().getMySQL());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try {
+            PlayerDBManager.createTable(VelocityPlugin.getInstance().getMySQL());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -61,8 +73,7 @@ public class FriendsVelocityPlugin
      *
      * @return ProxyServer object
      */
-    public ProxyServer getServer()
-    {
+    public ProxyServer getServer() {
         return this.server;
     }
 
@@ -80,8 +91,7 @@ public class FriendsVelocityPlugin
      *
      * @return Plugin Instance
      */
-    public static FriendsVelocityPlugin getInstance()
-    {
+    public static FriendsVelocityPlugin getInstance() {
         return instance;
     }
 }

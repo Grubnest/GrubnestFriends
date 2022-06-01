@@ -19,13 +19,19 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-public class FriendGUI implements Listener
-{
+/**
+ * The FriendGUI class opens a GUI to the player, showing their friends activity statuses
+ *
+ * @author NevaZyo
+ * @version 1.0
+ */
+public class FriendGUI implements Listener {
     private final UUID playerUUID;
     private int numberOfRows;
     private Inventory gui;
@@ -39,11 +45,10 @@ public class FriendGUI implements Listener
     /**
      * Sets up a GUI displaying the player's friends, allowing him to join their server
      *
-     * @param playerUUID the UUID of the player you want to open the GUI for
+     * @param playerUUID   the UUID of the player you want to open the GUI for
      * @param friendsUUIDs a list containing the player's friends UUIDs
      */
-    public FriendGUI(UUID playerUUID, List<UUID> friendsUUIDs)
-    {
+    public FriendGUI(UUID playerUUID, List<UUID> friendsUUIDs) {
 
         this.playerUUID = playerUUID;
         int maxHeadsPerPage = 45;
@@ -52,10 +57,8 @@ public class FriendGUI implements Listener
         List<UUID> page = new ArrayList<>();
 
         int i = 0;
-        for (UUID uuid : friendsUUIDs)
-        {
-            if (i == maxHeadsPerPage)
-            {
+        for (UUID uuid : friendsUUIDs) {
+            if (i == maxHeadsPerPage) {
                 i = 0;
                 pages.add(page);
                 page = new ArrayList<>();
@@ -66,7 +69,7 @@ public class FriendGUI implements Listener
         }
         if (i != maxHeadsPerPage) pages.add(page);
 
-        this.numberOfRows = (int) Math.ceil( ((double)pages.get(0).size()) /9);
+        this.numberOfRows = (int) Math.ceil(((double) pages.get(0).size()) / 9);
         if (numberOfRows > 5) numberOfRows = 5;
         makeGUI();
     }
@@ -76,25 +79,27 @@ public class FriendGUI implements Listener
      *
      * @param pageIndex the page's index
      */
-    private void showPage(int pageIndex)
-    {
+    private void showPage(int pageIndex) {
         //Bukkit.broadcastMessage("Showing page " + pageIndex);
         currentPage = pageIndex;
 
         final ItemStack[] contents = gui.getContents();
-        contents[numberOfRows*9 + 3] = pageIndex==0 ? glass : previousPage;
-        contents[numberOfRows*9 + 5] = pageIndex==pages.size()-1 ? glass : nextPage;
-        ItemMeta signMeta = contents[numberOfRows*9 + 4].getItemMeta();
-        signMeta.setDisplayName("Page " + (currentPage+1) + "/" + pages.size());
-        contents[numberOfRows*9 + 4].setItemMeta(signMeta);
+        contents[numberOfRows * 9 + 3] = pageIndex == 0 ? glass : previousPage;
+        contents[numberOfRows * 9 + 5] = pageIndex == pages.size() - 1 ? glass : nextPage;
+        ItemMeta signMeta = contents[numberOfRows * 9 + 4].getItemMeta();
+        signMeta.setDisplayName("Page " + (currentPage + 1) + "/" + pages.size());
+        contents[numberOfRows * 9 + 4].setItemMeta(signMeta);
 
         int slot = 0;
-        for (UUID friendUUID : pages.get(pageIndex))
-        {
+        for (UUID friendUUID : pages.get(pageIndex)) {
             ItemStack item = new ItemStack(Material.PLAYER_HEAD, 1);
             SkullMeta meta = (SkullMeta) item.getItemMeta();
             assert meta != null;
-            meta.setDisplayName(PlayerDBManager.getUsernameFromUUID(GrubnestCorePlugin.getInstance().getMySQL(), friendUUID));
+            try {
+                meta.setDisplayName(PlayerDBManager.getUsernameFromUUID(GrubnestCorePlugin.getInstance().getMySQL(), friendUUID));
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             //meta.setDisplayName(friendUUID.toString());
             meta.setOwningPlayer(Bukkit.getOfflinePlayer(friendUUID));
             String server = currentPageServers.get(slot);
@@ -104,8 +109,7 @@ public class FriendGUI implements Listener
             slot++;
         }
 
-        for (int i = slot; i<(numberOfRows+1)*9; i++)
-        {
+        for (int i = slot; i < (numberOfRows + 1) * 9; i++) {
             if (contents[i] == null || contents[i].getType() == Material.AIR || contents[i].getType() == Material.PLAYER_HEAD)
                 contents[i] = glass;
         }
@@ -118,8 +122,7 @@ public class FriendGUI implements Listener
      *
      * @param uuids the friends UUIDs
      */
-    private void requestServers(List<UUID> uuids)
-    {
+    private void requestServers(List<UUID> uuids) {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("GetServersNames");
         out.writeUTF(playerUUID.toString());
@@ -134,8 +137,7 @@ public class FriendGUI implements Listener
      *
      * @param servers new list
      */
-    public void setCurrentPageServers(List<String> servers)
-    {
+    public void setCurrentPageServers(List<String> servers) {
         this.currentPageServers = servers;
         //Bukkit.broadcastMessage("Setting current page servers list");
 
@@ -145,12 +147,11 @@ public class FriendGUI implements Listener
     /**
      * Setting up the GUI's items
      */
-    private void makeGUI()
-    {
+    private void makeGUI() {
         Player p = Bukkit.getPlayer(playerUUID);
-        if (p==null) return;
+        if (p == null) return;
 
-        gui = Bukkit.createInventory(null, (numberOfRows+1)*9, "Your friends");
+        gui = Bukkit.createInventory(null, (numberOfRows + 1) * 9, "Your friends");
         p.openInventory(gui);
         FriendsBukkitPlugin.getInstance().getServer().getPluginManager().registerEvents(this, FriendsBukkitPlugin.getInstance());
 
@@ -172,7 +173,7 @@ public class FriendGUI implements Listener
         final ItemStack sign = new ItemStack(Material.OAK_SIGN);
 
         ItemStack[] contents = gui.getContents();
-        contents[numberOfRows*9 + 4] = sign;
+        contents[numberOfRows * 9 + 4] = sign;
 
         gui.setContents(contents);
 
@@ -184,8 +185,7 @@ public class FriendGUI implements Listener
      *
      * @param pageIndex the index of the page
      */
-    private void requestPage(int pageIndex)
-    {
+    private void requestPage(int pageIndex) {
         currentPage = pageIndex;
         //Bukkit.broadcastMessage("Requesting page at index " + pageIndex);
         requestServers(pages.get(pageIndex));
@@ -208,8 +208,7 @@ public class FriendGUI implements Listener
 
         final Player p = (Player) e.getWhoClicked();
 
-        if (clickedItem.getType() == Material.PAPER)
-        {
+        if (clickedItem.getType() == Material.PAPER) {
             if (clickedItem.getItemMeta().getDisplayName().toLowerCase().contains("previous"))
                 requestPage(currentPage - 1);
             else
@@ -217,25 +216,26 @@ public class FriendGUI implements Listener
             return;
         }
 
-        if (clickedItem.getType() == Material.PLAYER_HEAD)
-        {
-            if (clickedItem.getItemMeta().getLore().get(0).toLowerCase().contains("hidden"))
-            {
+        if (clickedItem.getType() == Material.PLAYER_HEAD) {
+            if (clickedItem.getItemMeta().getLore().get(0).toLowerCase().contains("hidden")) {
                 p.sendMessage("Error: this player has not added you to their friends list.");
                 return;
             }
-            sendConnectionRequest(p, PlayerDBManager.getUUIDFromUsername(GrubnestCorePlugin.getInstance().getMySQL(), clickedItem.getItemMeta().getDisplayName()));
+            try {
+                sendConnectionRequest(p, PlayerDBManager.getUUIDFromUsername(GrubnestCorePlugin.getInstance().getMySQL(), clickedItem.getItemMeta().getDisplayName()));
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
     /**
      * Sends a request to the proxy to connect the player to their friend
      *
-     * @param p the player to connect
+     * @param p          the player to connect
      * @param friendUUID their friend
      */
-    private void sendConnectionRequest(Player p, UUID friendUUID)
-    {
+    private void sendConnectionRequest(Player p, UUID friendUUID) {
         ByteArrayDataOutput output = ByteStreams.newDataOutput();
         output.writeUTF("Join");
         output.writeUTF(p.getUniqueId().toString());
@@ -261,8 +261,7 @@ public class FriendGUI implements Listener
      * @param e InventoryCloseEvent
      */
     @EventHandler
-    public void onInventoryClose(final InventoryCloseEvent e)
-    {
+    public void onInventoryClose(final InventoryCloseEvent e) {
         if (!e.getInventory().equals(gui)) return;
         FriendMessageListener.getInstance().getOpenedGUIs().remove(this.playerUUID);
         HandlerList.unregisterAll(this);

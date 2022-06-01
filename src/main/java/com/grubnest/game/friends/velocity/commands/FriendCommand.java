@@ -19,21 +19,29 @@ import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class FriendCommand implements SimpleCommand
-{
+/**
+ * The FriendCommand class allows the player to add another player to their friends list or to display their friends status
+ * The command /friend is registered on the proxy-side of the GrubnestFriends plugin,
+ * and sends a request to the bukkit-side class called FriendsMessageListener (by using PluginMessaging)
+ * to open a GUI to the player showing their friends' status if no argument is typed
+ *
+ * @author NevaZyo
+ * @version 1.0
+ */
+public class FriendCommand implements SimpleCommand {
     private static FriendCommand INSTANCE = null;
     private final HashMap<String, Date> cooldowns = new HashMap<>();
     private final ChannelIdentifier identifier;
     private final VelocityPlugin plugin;
 
     /**
-     * Singleton constructor
+     * Private constructor (singleton)
      */
-    private FriendCommand()
-    {
+    private FriendCommand() {
         this.plugin = VelocityPlugin.getInstance();
         this.identifier = MinecraftChannelIdentifier.from("core:friendcommand");
         FriendsVelocityPlugin.getInstance().getServer().getChannelRegistrar().register(this.identifier);
@@ -56,14 +64,12 @@ public class FriendCommand implements SimpleCommand
         Player sender = (Player) source;
 
         String[] args = invocation.arguments();
-        if (args.length > 1)
-        {
+        if (args.length > 1) {
             sender.sendMessage(Component.text("Too many arguments"));
             return;
         }
 
-        if (args.length == 0)
-        {
+        if (args.length == 0) {
             makeFriendGUI(sender);
             return;
         }
@@ -73,9 +79,13 @@ public class FriendCommand implements SimpleCommand
             return;
         }
 
-        UUID friendUUID = PlayerDBManager.getUUIDFromUsername(mySQL, args[0]);
-        if (friendUUID == null)
-        {
+        UUID friendUUID = null;
+        try {
+            friendUUID = PlayerDBManager.getUUIDFromUsername(mySQL, args[0]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if (friendUUID == null) {
             sender.sendMessage(Component.text("Couldn't find this player", TextColor.color(210, 184, 139)));
             return;
         }
@@ -84,31 +94,36 @@ public class FriendCommand implements SimpleCommand
         key[0] = sender.getUniqueId().toString();
         key[1] = friendUUID.toString();
 
-        if (FriendDBManager.isFriendAlready(mySQL, key[0], key[1]))
-        {
-            sender.sendMessage(Component.text("You've already marked this player as a friend.", TextColor.color(255, 0, 0)));
-            return;
+        try {
+            if (FriendDBManager.isFriendAlready(mySQL, key[0], key[1])) {
+                sender.sendMessage(Component.text("You've already marked this player as a friend.", TextColor.color(255, 0, 0)));
+                return;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
-        FriendDBManager.markAsFriend(mySQL, key[0], key[1]);
+        try {
+            FriendDBManager.markAsFriend(mySQL, key[0], key[1]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         sender.sendMessage(Component.text("Added to your friends list!", TextColor.color(100, 224, 114)));
 
         if (!cooldowns.containsKey(Arrays.toString(key)))
             sendFriendNotification(sender, FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID));
-        else if ( (new Date().getTime() - cooldowns.get(Arrays.toString(key)).getTime() )/1000 >= 10)
+        else if ((new Date().getTime() - cooldowns.get(Arrays.toString(key)).getTime()) / 1000 >= 10)
             sendFriendNotification(sender, FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID));
     }
 
     /**
      * Sends a notification to the player added to the sender's friends list
      *
-     * @param sender the player that typed the command
+     * @param sender   the player that typed the command
      * @param receiver the player added as a friend by the sender
      */
-    private void sendFriendNotification(Player sender, Optional<Player> receiver)
-    {
-        if (receiver.isPresent())
-        {
+    private void sendFriendNotification(Player sender, Optional<Player> receiver) {
+        if (receiver.isPresent()) {
             String[] key = new String[2];
             key[0] = sender.getUniqueId().toString();
             key[1] = receiver.get().getUniqueId().toString();
@@ -128,26 +143,11 @@ public class FriendCommand implements SimpleCommand
     }
 
     /**
-     * Tries to get the player's friends names
-     *
-     * @param friendsUUIDs list containing the player's friends UUIDs
-     * @return list containing the player's friends names
-     */
-    private List<String> getFriendsNames(List<UUID> friendsUUIDs)
-    {
-        List<String> friendsNames = new ArrayList<>();
-        for (UUID uuid : friendsUUIDs)
-            friendsNames.add(PlayerDBManager.getUsernameFromUUID(this.plugin.getMySQL(), uuid));
-        return friendsNames;
-    }
-
-    /**
      * Tells the server the player is on to open a GUI for the player, containing the player's friends heads with the server they are playing on
      *
      * @param player the player
      */
-    private void makeFriendGUI(Player player)
-    {
+    private void makeFriendGUI(Player player) {
         String playerUUID = player.getUniqueId().toString();
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
 
@@ -165,8 +165,7 @@ public class FriendCommand implements SimpleCommand
     @Override
     public List<String> suggest(Invocation invocation) {
 
-        if (invocation.arguments().length == 1)
-        {
+        if (invocation.arguments().length == 1) {
             List<String> players = new ArrayList<>();
             for (Player p : FriendsVelocityPlugin.getInstance().getServer().getAllPlayers())
                 players.add(p.getUsername());
@@ -181,10 +180,9 @@ public class FriendCommand implements SimpleCommand
      * @param event PluginMessageEvent
      */
     @Subscribe
-    public void onPluginMessageEvent(PluginMessageEvent event)
-    {
+    public void onPluginMessageEvent(PluginMessageEvent event) {
         // Received plugin message, check channel identifier matches
-        if(!event.getIdentifier().equals(identifier)) return;
+        if (!event.getIdentifier().equals(identifier)) return;
 
         // Since this message was meant for this listener set it to handled
         // We do this so the message doesn't get routed through.
@@ -195,18 +193,15 @@ public class FriendCommand implements SimpleCommand
         // Important! Check the origin of the plugin message
         // Depending on what the message does its critical that a player
         // is not able to spoof it
-        if(event.getSource() instanceof Player)
-        {
+        if (event.getSource() instanceof Player) {
             return;
         }
         // Could also instead be
-        if(event.getSource() instanceof ServerConnection)
-        {
+        if (event.getSource() instanceof ServerConnection) {
             ByteArrayDataInput in = event.dataAsDataStream();
 
             String subChannel = in.readUTF();
-            if (subChannel.equals("Join"))
-            {
+            if (subChannel.equals("Join")) {
                 UUID playerUUID = UUID.fromString(in.readUTF());
                 Optional<Player> optPlayer = FriendsVelocityPlugin.getInstance().getServer().getPlayer(playerUUID);
                 if (optPlayer.isEmpty()) return;
@@ -214,27 +209,19 @@ public class FriendCommand implements SimpleCommand
 
                 UUID friendUUID = UUID.fromString(in.readUTF());
                 Optional<Player> optFriend = FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID);
-                if (optFriend.isPresent())
-                {
+                if (optFriend.isPresent()) {
                     Player friend = optFriend.get();
                     Optional<ServerConnection> optServer = friend.getCurrentServer();
-                    if (optServer.isPresent())
-                    {
+                    if (optServer.isPresent()) {
                         ServerConnection friendServer = optServer.get();
                         p.createConnectionRequest(friendServer.getServer()).connect();
-                    }
-                    else
-                    {
+                    } else {
                         FriendsVelocityPlugin.getInstance().getLogger().info("Error: could not find server. (FriendCommand)");
                     }
-                }
-                else
-                {
+                } else {
                     p.sendMessage(Component.text("Error: your friend is offline."));
                 }
-            }
-            else if (subChannel.equals("GetServersNames"))
-            {
+            } else if (subChannel.equals("GetServersNames")) {
                 //FriendsVelocityPlugin.getInstance().getLogger().info("Getting servers names");
                 UUID playerUUID = UUID.fromString(in.readUTF());
 
@@ -243,8 +230,7 @@ public class FriendCommand implements SimpleCommand
                 out.writeUTF(playerUUID.toString());
 
                 boolean valid = true;
-                while (valid)
-                {
+                while (valid) {
                     try {
                         UUID friendUUID = UUID.fromString(in.readUTF());
                         Optional<Player> friend = FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID);
@@ -252,27 +238,22 @@ public class FriendCommand implements SimpleCommand
                         boolean mutual = FriendDBManager.isFriendAlready(this.plugin.getMySQL(), friendUUID.toString(), playerUUID.toString());
                         String server =
                                 mutual ?
-                                    friend.isPresent() ? friend.get().getCurrentServer().get().getServerInfo().getName() : "Offline"
-                                : "Hidden";
+                                        friend.isPresent() ? friend.get().getCurrentServer().get().getServerInfo().getName() : "Offline"
+                                        : "Hidden";
                         out.writeUTF(server);
-                    }catch(Exception e)
-                    {
+                    } catch (Exception e) {
                         valid = false;
                     }
                 }
                 Player p = FriendsVelocityPlugin.getInstance().getServer().getPlayer(playerUUID).get();
                 p.getCurrentServer().get().sendPluginMessage(identifier, out.toByteArray());
-                //FriendsVelocityPlugin.getInstance().getLogger().info("Sent servers names " + Base64.getEncoder().encodeToString(out.toByteArray()));
-            }
-            else
-            {
+            } else {
                 FriendsVelocityPlugin.getInstance().getLogger().info("Received an unknown subchannel in core:friendcommand");
             }
         }
     }
 
-    public static FriendCommand getInstance()
-    {
+    public static FriendCommand getInstance() {
         if (INSTANCE == null)
             INSTANCE = new FriendCommand();
         return INSTANCE;
