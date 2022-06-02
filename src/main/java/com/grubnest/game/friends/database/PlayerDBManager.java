@@ -13,30 +13,9 @@ import java.util.UUID;
  * Each function requires a MySQL instance as parameter, which you can get from the core
  *
  * @author NevaZyo
- * @version 1.0
+ * @version 1.0 at 06/01/2022
  */
 public interface PlayerDBManager {
-
-    /**
-     * Creates a new table in the database if not already created
-     *
-     * @param mySql MySQL connection to use for the query
-     */
-    static void createTable(MySQL mySql) throws SQLException {
-        try (
-                Connection connection = mySql.getConnection();
-                PreparedStatement statement = connection.prepareStatement("""
-                    CREATE TABLE IF NOT EXISTS `player` (
-                        uuid varchar(36) PRIMARY KEY,
-                        username varchar(16)
-                    )
-                    """)
-        ){
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new SQLException("Error while trying to create database player table");
-        }
-    }
 
     /**
      * Tries to get the name of a player stored in the server's database based on their UUID

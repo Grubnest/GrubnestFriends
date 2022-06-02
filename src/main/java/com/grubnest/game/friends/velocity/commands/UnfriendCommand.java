@@ -17,7 +17,7 @@ import java.util.UUID;
  * The UnfriendCommand class allows the player to remove another player from their friends list
  *
  * @author NevaZyo
- * @version 1.0
+ * @version 1.0 at 06/01/2022
  */
 public class UnfriendCommand implements SimpleCommand {
 

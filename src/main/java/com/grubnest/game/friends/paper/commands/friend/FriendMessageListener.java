@@ -17,13 +17,12 @@ import java.util.*;
  * The FriendMessageListener class is used to receive and send requests to the proxy-side of the plugin
  *
  * @author NevaZyo
- * @version 1.0
+ * @version 1.0 at 06/01/2022
  */
 public class FriendMessageListener implements PluginMessageListener {
 
     private static FriendMessageListener INSTANCE;
     private final HashMap<UUID, FriendGUI> guis = new HashMap<>();
-
 
     /**
      * Private constructor (singleton)
@@ -40,13 +39,14 @@ public class FriendMessageListener implements PluginMessageListener {
      */
     @Override
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
-        if (!channel.equals("core:friendcommand")) return;
+        if (!channel.equals("core:friendcommand")) {
+            return;
+        }
 
         ByteArrayDataInput in = ByteStreams.newDataInput(message);
 
         String subChannel = in.readUTF();
         if (subChannel.equals("MakeGUI")) {
-            //Bukkit.broadcastMessage("Making GUI");
             UUID playerUUID = UUID.fromString(in.readUTF());
 
             List<UUID> friends = new ArrayList<>();
@@ -55,21 +55,15 @@ public class FriendMessageListener implements PluginMessageListener {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            /*List<UUID> friends = new ArrayList<>();
-            for (int i=0; i<213; i++)
-            {
-                friends.add(UUID.randomUUID());
-            }*/
 
             Player p = Bukkit.getPlayer(playerUUID);
             if (friends.isEmpty()) {
-                Objects.requireNonNull(p).sendMessage("You don't have any friend, do /friend <player> to add someone to your friends list.");
+                Objects.requireNonNull(p).sendMessage("You don't have any friends, do /friend <player> to add someone to your friends list.");
                 return;
             }
 
             guis.put(playerUUID, new FriendGUI(playerUUID, friends));
         } else if (subChannel.equals("UpdateServersNames")) {
-            //Bukkit.broadcastMessage("Updating servers names");
             UUID playerUUID = UUID.fromString(in.readUTF());
             List<String> serversNames = new ArrayList<>();
             boolean valid = true;
@@ -97,7 +91,6 @@ public class FriendMessageListener implements PluginMessageListener {
             INSTANCE = new FriendMessageListener();
         return INSTANCE;
     }
-
 
     /**
      * Basic getter

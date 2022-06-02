@@ -3,7 +3,6 @@ package com.grubnest.game.friends.velocity;
 import com.google.inject.Inject;
 import com.grubnest.game.core.velocity.VelocityPlugin;
 import com.grubnest.game.friends.database.FriendDBManager;
-import com.grubnest.game.friends.database.PlayerDBManager;
 import com.grubnest.game.friends.velocity.commands.FriendCommand;
 import com.grubnest.game.friends.velocity.commands.UnfriendCommand;
 import com.velocitypowered.api.command.CommandManager;
@@ -19,7 +18,7 @@ import java.sql.SQLException;
  * The FriendsVelocityPlugin class is the proxy-side of the plugin GrubnestFriends
  *
  * @author NevaZyo
- * @version 1.0
+ * @version 1.0 at 06/01/2022
  */
 @Plugin(id="grubnestfriends", name="Grubnest Friends Plugin", version="0.1.0-SNAPSHOT",
         url="https://grubnest.com", description="Grubnest Friends running on Velocity", authors={"NevaZyo"})
@@ -48,21 +47,16 @@ public class FriendsVelocityPlugin {
         commandManager.register("friend", FriendCommand.getInstance());
         commandManager.register("unfriend", UnfriendCommand.getInstance());
 
-        createTables();
+        createTable();
     }
 
 
     /**
      * Creates all needed database tables
      */
-    private void createTables() {
+    private void createTable() {
         try {
             FriendDBManager.createTable(VelocityPlugin.getInstance().getMySQL());
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        try {
-            PlayerDBManager.createTable(VelocityPlugin.getInstance().getMySQL());
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -89,7 +83,7 @@ public class FriendsVelocityPlugin {
     /**
      * Get Plugin Instance
      *
-     * @return Plugin Instance
+     * @return FriendsVelocityPlugin instance
      */
     public static FriendsVelocityPlugin getInstance() {
         return instance;

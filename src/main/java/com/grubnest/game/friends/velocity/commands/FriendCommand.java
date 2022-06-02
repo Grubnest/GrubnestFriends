@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  * to open a GUI to the player showing their friends' status if no argument is typed
  *
  * @author NevaZyo
- * @version 1.0
+ * @version 1.0 at 06/01/2022
  */
 public class FriendCommand implements SimpleCommand {
     private static FriendCommand INSTANCE = null;
@@ -204,7 +204,9 @@ public class FriendCommand implements SimpleCommand {
             if (subChannel.equals("Join")) {
                 UUID playerUUID = UUID.fromString(in.readUTF());
                 Optional<Player> optPlayer = FriendsVelocityPlugin.getInstance().getServer().getPlayer(playerUUID);
-                if (optPlayer.isEmpty()) return;
+                if (optPlayer.isEmpty()) {
+                    return;
+                }
                 Player p = optPlayer.get();
 
                 UUID friendUUID = UUID.fromString(in.readUTF());
@@ -245,6 +247,7 @@ public class FriendCommand implements SimpleCommand {
                         valid = false;
                     }
                 }
+
                 Player p = FriendsVelocityPlugin.getInstance().getServer().getPlayer(playerUUID).get();
                 p.getCurrentServer().get().sendPluginMessage(identifier, out.toByteArray());
             } else {
@@ -253,6 +256,9 @@ public class FriendCommand implements SimpleCommand {
         }
     }
 
+    /**
+     * @return the instance (singleton)
+     */
     public static FriendCommand getInstance() {
         if (INSTANCE == null)
             INSTANCE = new FriendCommand();

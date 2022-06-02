@@ -8,7 +8,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  * The FriendsBukkitPlugin class is the bukkit-side of the plugin GrubnestFriends
  *
  * @author NevaZyo
- * @version 1.0
+ * @version 1.0 at 06/01/2022
  */
 public class FriendsBukkitPlugin extends JavaPlugin {
     private static FriendsBukkitPlugin instance;

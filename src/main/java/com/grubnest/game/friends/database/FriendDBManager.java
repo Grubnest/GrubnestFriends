@@ -15,7 +15,7 @@ import java.util.UUID;
  * Each function requires a MySQL instance as parameter, which you can get from the core
  *
  * @author NevaZyo
- * @version 1.0
+ * @version 1.0 at 06/01/2022
  */
 public interface FriendDBManager {
 
