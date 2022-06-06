@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -130,7 +131,7 @@ public interface FriendDBManager {
      * @param playerUUID the player's UUID
      * @return list containing the player's friends UUIDs
      */
-    static List<UUID> getFriendsUUIDs(MySQL mySql, String playerUUID) throws SQLException {
+    static Optional<List<UUID>> getFriendsUUIDs(MySQL mySql, String playerUUID) throws SQLException {
         String query = """
                 SELECT friend_uuid
                 FROM friend
@@ -148,7 +149,7 @@ public interface FriendDBManager {
         } catch (SQLException e) {
             throw new SQLException("Error while trying to get the friends list of a player");
         }
-        return friendsUUIDs;
+        return Optional.of(friendsUUIDs);
     }
 
 }

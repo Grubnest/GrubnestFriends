@@ -6,7 +6,6 @@ import com.google.common.io.ByteStreams;
 import com.grubnest.game.core.databasehandler.MySQL;
 import com.grubnest.game.core.velocity.VelocityPlugin;
 import com.grubnest.game.friends.database.FriendDBManager;
-import com.grubnest.game.friends.database.PlayerDBManager;
 import com.grubnest.game.friends.velocity.FriendsVelocityPlugin;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
@@ -19,6 +18,7 @@ import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -81,7 +81,8 @@ public class FriendCommand implements SimpleCommand {
 
         UUID friendUUID = null;
         try {
-            friendUUID = PlayerDBManager.getUUIDFromUsername(mySQL, args[0]);
+            Connection c = VelocityPlugin.getInstance().getMySQL().getConnection();
+            //friendUUID = PlayerDBManager.getUUIDFromUsername(mySQL, args[0]);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -110,10 +111,11 @@ public class FriendCommand implements SimpleCommand {
         }
         sender.sendMessage(Component.text("Added to your friends list!", TextColor.color(100, 224, 114)));
 
-        if (!cooldowns.containsKey(Arrays.toString(key)))
+        if (!cooldowns.containsKey(Arrays.toString(key))) {
             sendFriendNotification(sender, FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID));
-        else if ((new Date().getTime() - cooldowns.get(Arrays.toString(key)).getTime()) / 1000 >= 10)
+        } else if ((new Date().getTime() - cooldowns.get(Arrays.toString(key)).getTime()) / 1000 >= 10) {
             sendFriendNotification(sender, FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID));
+        }
     }
 
     /**
@@ -155,6 +157,8 @@ public class FriendCommand implements SimpleCommand {
         out.writeUTF(playerUUID);
 
         Player p = FriendsVelocityPlugin.getInstance().getServer().getPlayer(UUID.fromString(playerUUID)).get();
+
+        //Handled in com.grubnest.game.friends.paper.commands.friend.FriendMessageListener:onPluginMessageReceived()
         p.getCurrentServer().get().sendPluginMessage(this.identifier, out.toByteArray());
     }
 
@@ -249,6 +253,8 @@ public class FriendCommand implements SimpleCommand {
                 }
 
                 Player p = FriendsVelocityPlugin.getInstance().getServer().getPlayer(playerUUID).get();
+
+                //Handled in com.grubnest.game.friends.paper.commands.friend.FriendMessageListener:onPluginMessageReceived()
                 p.getCurrentServer().get().sendPluginMessage(identifier, out.toByteArray());
             } else {
                 FriendsVelocityPlugin.getInstance().getLogger().info("Received an unknown subchannel in core:friendcommand");

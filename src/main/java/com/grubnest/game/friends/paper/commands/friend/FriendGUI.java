@@ -2,8 +2,8 @@ package com.grubnest.game.friends.paper.commands.friend;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import com.grubnest.game.core.databasehandler.MySQL;
 import com.grubnest.game.core.paper.GrubnestCorePlugin;
-import com.grubnest.game.friends.database.PlayerDBManager;
 import com.grubnest.game.friends.paper.FriendsBukkitPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -19,6 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -147,10 +148,10 @@ public class FriendGUI implements Listener {
         for (UUID friendUUID : pages.get(pageIndex)) {
             ItemStack item = new ItemStack(Material.PLAYER_HEAD, 1);
             SkullMeta meta = (SkullMeta) item.getItemMeta();
-            assert meta != null;
             try {
-                //meta.setDisplayName(GrubnestCorePlugin.getInstance().getMySQL().);
-                meta.setDisplayName(PlayerDBManager.getUsernameFromUUID(GrubnestCorePlugin.getInstance().getMySQL(), friendUUID));
+                Connection c = GrubnestCorePlugin.getInstance().getMySQL().getConnection();
+                //meta.setDisplayName(GrubnestCorePlugin.);
+                //meta.setDisplayName(PlayerDBManager.getUsernameFromUUID(GrubnestCorePlugin.getInstance().getMySQL(), friendUUID));
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -187,6 +188,7 @@ public class FriendGUI implements Listener {
             out.writeUTF(uuid.toString());
         }
 
+        //Handled in com.grubnest.game.friends.velocity.commands.FriendCommand:onPluginMessageReceived()
         FriendsBukkitPlugin.getInstance().getServer().sendPluginMessage(FriendsBukkitPlugin.getInstance(), "core:friendcommand", out.toByteArray());
     }
 
@@ -216,17 +218,17 @@ public class FriendGUI implements Listener {
 
         this.glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta meta = glass.getItemMeta();
-        meta.setDisplayName(" ");
+        Objects.requireNonNull(meta).setDisplayName(" ");
         glass.setItemMeta(meta);
 
         this.previousPage = new ItemStack(Material.PAPER);
         meta = previousPage.getItemMeta();
-        meta.setDisplayName("Previous page");
+        Objects.requireNonNull(meta).setDisplayName("Previous page");
         previousPage.setItemMeta(meta);
 
         this.nextPage = new ItemStack(Material.PAPER);
         meta = nextPage.getItemMeta();
-        meta.setDisplayName("Next page");
+        Objects.requireNonNull(meta).setDisplayName("Next page");
         nextPage.setItemMeta(meta);
 
         final ItemStack sign = new ItemStack(Material.OAK_SIGN);
@@ -270,7 +272,7 @@ public class FriendGUI implements Listener {
         final Player p = (Player) e.getWhoClicked();
 
         if (clickedItem.getType() == Material.PAPER) {
-            if (clickedItem.getItemMeta().getDisplayName().toLowerCase().contains("previous"))
+            if (Objects.requireNonNull(clickedItem.getItemMeta()).getDisplayName().toLowerCase().contains("previous"))
                 requestPage(currentPage - 1);
             else
                 requestPage(currentPage + 1);
@@ -278,13 +280,15 @@ public class FriendGUI implements Listener {
         }
 
         if (clickedItem.getType() == Material.PLAYER_HEAD) {
-            if (clickedItem.getItemMeta().getLore().get(0).toLowerCase().contains("hidden")) {
+            if (Objects.requireNonNull(Objects.requireNonNull(clickedItem.getItemMeta()).getLore()).get(0).toLowerCase().contains("hidden")) {
                 p.sendMessage("This player has not added you to their friends list.");
                 p.sendMessage("If you want to be able to join your friend's server, they have to mark you as a friend too.");
                 return;
             }
 
             try {
+                MySQL sql = GrubnestCorePlugin.getInstance().getMySQL();
+                sql.getConnection();
                 sendConnectionRequest(p, PlayerDBManager.getUUIDFromUsername(GrubnestCorePlugin.getInstance().getMySQL(), clickedItem.getItemMeta().getDisplayName()));
             } catch (SQLException ex) {
                 ex.printStackTrace();
@@ -304,6 +308,7 @@ public class FriendGUI implements Listener {
         output.writeUTF(p.getUniqueId().toString());
         output.writeUTF(friendUUID.toString());
 
+        //Handled in com.grubnest.game.friends.velocity.commands.FriendCommand:onPluginMessageReceived()
         p.sendPluginMessage(FriendsBukkitPlugin.getInstance(), "core:friendcommand", output.toByteArray());
     }
 

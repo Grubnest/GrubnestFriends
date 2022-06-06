@@ -1,15 +1,16 @@
 package com.grubnest.game.friends.velocity.commands;
 
 import com.grubnest.game.core.databasehandler.MySQL;
+import com.grubnest.game.core.paper.GrubnestCorePlugin;
 import com.grubnest.game.core.velocity.VelocityPlugin;
 import com.grubnest.game.friends.database.FriendDBManager;
-import com.grubnest.game.friends.database.PlayerDBManager;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.UUID;
 
@@ -58,6 +59,7 @@ public class UnfriendCommand implements SimpleCommand {
 
         UUID toRemoveUUID = null;
         try {
+            //Connection c = VelocityPlugin.getInstance().getMySQL().getConnection();
             toRemoveUUID = PlayerDBManager.getUUIDFromUsername(mySQL, args[0]);
         } catch (SQLException e) {
             e.printStackTrace();

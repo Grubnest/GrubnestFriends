@@ -49,20 +49,20 @@ public class FriendMessageListener implements PluginMessageListener {
         if (subChannel.equals("MakeGUI")) {
             UUID playerUUID = UUID.fromString(in.readUTF());
 
-            List<UUID> friends = new ArrayList<>();
+            Optional<List<UUID>> friends = Optional.empty();
             try {
                 friends = FriendDBManager.getFriendsUUIDs(GrubnestCorePlugin.getInstance().getMySQL(), playerUUID.toString());
             } catch (SQLException e) {
                 e.printStackTrace();
             }
 
-            Player p = Bukkit.getPlayer(playerUUID);
             if (friends.isEmpty()) {
+                Player p = Bukkit.getPlayer(playerUUID);
                 Objects.requireNonNull(p).sendMessage("You don't have any friends, do /friend <player> to add someone to your friends list.");
                 return;
             }
 
-            guis.put(playerUUID, new FriendGUI(playerUUID, friends));
+            guis.put(playerUUID, new FriendGUI(playerUUID, friends.get()));
         } else if (subChannel.equals("UpdateServersNames")) {
             UUID playerUUID = UUID.fromString(in.readUTF());
             List<String> serversNames = new ArrayList<>();
