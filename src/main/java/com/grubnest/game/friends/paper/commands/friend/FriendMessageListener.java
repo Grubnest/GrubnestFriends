@@ -2,6 +2,7 @@ package com.grubnest.game.friends.paper.commands.friend;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
+import com.grubnest.game.core.databasehandler.DatabaseManager;
 import com.grubnest.game.core.paper.GrubnestCorePlugin;
 import com.grubnest.game.friends.database.FriendDBManager;
 import com.grubnest.game.friends.paper.FriendsBukkitPlugin;
@@ -51,7 +52,7 @@ public class FriendMessageListener implements PluginMessageListener {
 
             Optional<List<UUID>> friends = Optional.empty();
             try {
-                friends = FriendDBManager.getFriendsUUIDs(GrubnestCorePlugin.getInstance().getMySQL(), playerUUID.toString());
+                friends = FriendDBManager.getFriendsUUIDs(playerUUID.toString());
             } catch (SQLException e) {
                 e.printStackTrace();
             }

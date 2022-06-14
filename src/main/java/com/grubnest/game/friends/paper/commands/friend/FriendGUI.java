@@ -2,8 +2,7 @@ package com.grubnest.game.friends.paper.commands.friend;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import com.grubnest.game.core.databasehandler.MySQL;
-import com.grubnest.game.core.paper.GrubnestCorePlugin;
+import com.grubnest.game.core.databasehandler.utils.DataUtils;
 import com.grubnest.game.friends.paper.FriendsBukkitPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -19,8 +18,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -148,13 +145,11 @@ public class FriendGUI implements Listener {
         for (UUID friendUUID : pages.get(pageIndex)) {
             ItemStack item = new ItemStack(Material.PLAYER_HEAD, 1);
             SkullMeta meta = (SkullMeta) item.getItemMeta();
-            try {
-                Connection c = GrubnestCorePlugin.getInstance().getMySQL().getConnection();
-                //meta.setDisplayName(GrubnestCorePlugin.);
-                //meta.setDisplayName(PlayerDBManager.getUsernameFromUUID(GrubnestCorePlugin.getInstance().getMySQL(), friendUUID));
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+
+            Optional<String> nameOpt = DataUtils.getUsernameFromID(friendUUID);
+            String name = nameOpt.orElse("NotFound");
+            Objects.requireNonNull(meta).setDisplayName(name);
+
             meta.setOwningPlayer(Bukkit.getOfflinePlayer(friendUUID));
             String server = currentPageServers.get(slot);
             meta.setLore(Collections.singletonList(server));
@@ -286,13 +281,8 @@ public class FriendGUI implements Listener {
                 return;
             }
 
-            try {
-                MySQL sql = GrubnestCorePlugin.getInstance().getMySQL();
-                sql.getConnection();
-                sendConnectionRequest(p, PlayerDBManager.getUUIDFromUsername(GrubnestCorePlugin.getInstance().getMySQL(), clickedItem.getItemMeta().getDisplayName()));
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
+            Optional<UUID> friendUUID = DataUtils.getIDFromUsername(clickedItem.getItemMeta().getDisplayName());
+            friendUUID.ifPresent(uuid -> sendConnectionRequest(p, uuid));
         }
     }
 

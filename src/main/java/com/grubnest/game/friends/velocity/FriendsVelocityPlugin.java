@@ -1,7 +1,6 @@
 package com.grubnest.game.friends.velocity;
 
 import com.google.inject.Inject;
-import com.grubnest.game.core.velocity.VelocityPlugin;
 import com.grubnest.game.friends.database.FriendDBManager;
 import com.grubnest.game.friends.velocity.commands.FriendCommand;
 import com.grubnest.game.friends.velocity.commands.UnfriendCommand;
@@ -56,7 +55,7 @@ public class FriendsVelocityPlugin {
      */
     private void createTable() {
         try {
-            FriendDBManager.createTable(VelocityPlugin.getInstance().getMySQL());
+            FriendDBManager.createTable();
         } catch (SQLException e) {
             e.printStackTrace();
         }

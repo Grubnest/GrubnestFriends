@@ -1,8 +1,6 @@
 package com.grubnest.game.friends.velocity.commands;
 
-import com.grubnest.game.core.databasehandler.MySQL;
-import com.grubnest.game.core.paper.GrubnestCorePlugin;
-import com.grubnest.game.core.velocity.VelocityPlugin;
+import com.grubnest.game.core.databasehandler.utils.DataUtils;
 import com.grubnest.game.friends.database.FriendDBManager;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
@@ -10,8 +8,8 @@ import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -23,14 +21,11 @@ import java.util.UUID;
 public class UnfriendCommand implements SimpleCommand {
 
     private static UnfriendCommand INSTANCE = null;
-    private final VelocityPlugin plugin;
 
     /**
      * Singleton constructor
      */
-    private UnfriendCommand() {
-        this.plugin = VelocityPlugin.getInstance();
-    }
+    private UnfriendCommand() {}
 
     /**
      * What should be executed
@@ -40,7 +35,6 @@ public class UnfriendCommand implements SimpleCommand {
     @Override
     public void execute(Invocation invocation) {
 
-        final MySQL mySQL = this.plugin.getMySQL();
         final CommandSource source = invocation.source();
         if (!(source instanceof Player)) return;
 
@@ -57,24 +51,19 @@ public class UnfriendCommand implements SimpleCommand {
             return;
         }
 
-        UUID toRemoveUUID = null;
-        try {
-            //Connection c = VelocityPlugin.getInstance().getMySQL().getConnection();
-            toRemoveUUID = PlayerDBManager.getUUIDFromUsername(mySQL, args[0]);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        if (toRemoveUUID == null) {
+        Optional<UUID> toRemoveUUIDOpt;
+        toRemoveUUIDOpt = DataUtils.getIDFromUsername(args[0]);
+        if (toRemoveUUIDOpt.isEmpty()) {
             sender.sendMessage(Component.text("Couldn't find this player", TextColor.color(210, 184, 139)));
             return;
         }
 
         String[] key = new String[2];
         key[0] = sender.getUniqueId().toString();
-        key[1] = toRemoveUUID.toString();
+        key[1] = toRemoveUUIDOpt.get().toString();
 
         try {
-            if (!FriendDBManager.isFriendAlready(mySQL, key[0], key[1])) {
+            if (!FriendDBManager.isFriendAlready(key[0], key[1])) {
                 sender.sendMessage(Component.text("This player isn't in your friends list.", TextColor.color(255, 0, 0)));
                 return;
             }
@@ -83,7 +72,7 @@ public class UnfriendCommand implements SimpleCommand {
         }
 
         try {
-            FriendDBManager.removeFromFriendDB(mySQL, key[0], key[1]);
+            FriendDBManager.removeFromFriendDB(key[0], key[1]);
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -1,6 +1,6 @@
 package com.grubnest.game.friends.database;
 
-import com.grubnest.game.core.databasehandler.MySQL;
+import com.grubnest.game.core.databasehandler.DatabaseManager;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -23,11 +23,10 @@ public interface FriendDBManager {
     /**
      * Creates a new table in the database if not already created
      *
-     * @param mySql MySQL connection to use for the query
      */
-    static void createTable(MySQL mySql) throws SQLException {
+    static void createTable() throws SQLException {
         try (
-                Connection connection = mySql.getConnection();
+                Connection connection = DatabaseManager.getInstance().getMySQL().getConnection();
                 PreparedStatement statement = connection.prepareStatement("""
                     CREATE TABLE IF NOT EXISTS `friend` (
                         player_uuid varchar(36),
@@ -45,11 +44,10 @@ public interface FriendDBManager {
     /**
      * Tries to add given friendUUID to the player's friends list
      *
-     * @param mySql      MySQL connection to use for the query
      * @param playerUUID UUID of the player you want to add the friend
      * @param friendUUID UUID of the friend you want to add
      */
-    static void markAsFriend(MySQL mySql, String playerUUID, String friendUUID) throws SQLException {
+    static void markAsFriend(String playerUUID, String friendUUID) throws SQLException {
         String query = """
                 INSERT INTO friend
                 	(player_uuid, friend_uuid)
@@ -58,7 +56,7 @@ public interface FriendDBManager {
                 """;
 
         try (
-                Connection connection = mySql.getConnection();
+                Connection connection = DatabaseManager.getInstance().getMySQL().getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)
         ) {
             statement.setString(1, playerUUID);
@@ -72,18 +70,17 @@ public interface FriendDBManager {
     /**
      * Tries to remove given friendUUID from the player's friends list
      *
-     * @param mySql      MySQL connection to use for the query
      * @param playerUUID UUID of the player you want to remove the friend from
      * @param friendUUID UUID of the player's friend you want to remove
      */
-    static void removeFromFriendDB(MySQL mySql, String playerUUID, String friendUUID) throws SQLException {
+    static void removeFromFriendDB(String playerUUID, String friendUUID) throws SQLException {
         String query = """
                 DELETE FROM friend
                 WHERE player_uuid=? AND friend_uuid=?;
                 """;
 
         try (
-                Connection connection = mySql.getConnection();
+                Connection connection = DatabaseManager.getInstance().getMySQL().getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)
         ) {
             statement.setString(1, playerUUID);
@@ -97,12 +94,11 @@ public interface FriendDBManager {
     /**
      * Returns a boolean indicating if the player has marked another as a friend
      *
-     * @param mySql      MySQL connection to use for the query
      * @param playerUUID the player's UUID you want to check
      * @param friendUUID UUID of the player's optional friend
      * @return true if friendUUID is in the player's friends list, false otherwise
      */
-    static boolean isFriendAlready(MySQL mySql, String playerUUID, String friendUUID) throws SQLException {
+    static boolean isFriendAlready(String playerUUID, String friendUUID) throws SQLException {
         String query = """
                 SELECT player_uuid
                 FROM friend
@@ -111,7 +107,7 @@ public interface FriendDBManager {
 
         boolean friendAlready;
         try (
-                Connection connection = mySql.getConnection();
+                Connection connection = DatabaseManager.getInstance().getMySQL().getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)
         ) {
             statement.setString(1, playerUUID);
@@ -127,11 +123,10 @@ public interface FriendDBManager {
     /**
      * Tries to get the player's friends UUIDs
      *
-     * @param mySql      MySQL connection to use for the query
      * @param playerUUID the player's UUID
      * @return list containing the player's friends UUIDs
      */
-    static Optional<List<UUID>> getFriendsUUIDs(MySQL mySql, String playerUUID) throws SQLException {
+    static Optional<List<UUID>> getFriendsUUIDs(String playerUUID) throws SQLException {
         String query = """
                 SELECT friend_uuid
                 FROM friend
@@ -139,7 +134,7 @@ public interface FriendDBManager {
                 """;
         List<UUID> friendsUUIDs = new ArrayList<>();
         try (
-                Connection connection = mySql.getConnection();
+                Connection connection = DatabaseManager.getInstance().getMySQL().getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)
         ) {
             statement.setString(1, playerUUID);

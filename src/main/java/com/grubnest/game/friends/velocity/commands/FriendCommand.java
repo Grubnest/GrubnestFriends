@@ -3,8 +3,8 @@ package com.grubnest.game.friends.velocity.commands;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import com.grubnest.game.core.databasehandler.MySQL;
-import com.grubnest.game.core.velocity.VelocityPlugin;
+import com.grubnest.game.core.databasehandler.DatabaseManager;
+import com.grubnest.game.core.databasehandler.utils.DataUtils;
 import com.grubnest.game.friends.database.FriendDBManager;
 import com.grubnest.game.friends.velocity.FriendsVelocityPlugin;
 import com.velocitypowered.api.command.CommandSource;
@@ -18,7 +18,6 @@ import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -36,13 +35,11 @@ public class FriendCommand implements SimpleCommand {
     private static FriendCommand INSTANCE = null;
     private final HashMap<String, Date> cooldowns = new HashMap<>();
     private final ChannelIdentifier identifier;
-    private final VelocityPlugin plugin;
 
     /**
      * Private constructor (singleton)
      */
     private FriendCommand() {
-        this.plugin = VelocityPlugin.getInstance();
         this.identifier = MinecraftChannelIdentifier.from("core:friendcommand");
         FriendsVelocityPlugin.getInstance().getServer().getChannelRegistrar().register(this.identifier);
         FriendsVelocityPlugin.getInstance().getServer().getEventManager().register(FriendsVelocityPlugin.getInstance(), this);
@@ -56,10 +53,10 @@ public class FriendCommand implements SimpleCommand {
     @Override
     public void execute(Invocation invocation) {
 
-        final MySQL mySQL = this.plugin.getMySQL();
-
         final CommandSource source = invocation.source();
-        if (!(source instanceof Player)) return;
+        if (!(source instanceof Player)) {
+            return;
+        }
 
         Player sender = (Player) source;
 
@@ -79,24 +76,21 @@ public class FriendCommand implements SimpleCommand {
             return;
         }
 
-        UUID friendUUID = null;
-        try {
-            Connection c = VelocityPlugin.getInstance().getMySQL().getConnection();
-            //friendUUID = PlayerDBManager.getUUIDFromUsername(mySQL, args[0]);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        if (friendUUID == null) {
+        Optional<UUID> friendUUIDOpt;
+        friendUUIDOpt = DataUtils.getIDFromUsername(args[0]);
+        if (friendUUIDOpt.isEmpty()) {
             sender.sendMessage(Component.text("Couldn't find this player", TextColor.color(210, 184, 139)));
             return;
         }
+
+        UUID friendUUID = friendUUIDOpt.get();
 
         String[] key = new String[2];
         key[0] = sender.getUniqueId().toString();
         key[1] = friendUUID.toString();
 
         try {
-            if (FriendDBManager.isFriendAlready(mySQL, key[0], key[1])) {
+            if (FriendDBManager.isFriendAlready(key[0], key[1])) {
                 sender.sendMessage(Component.text("You've already marked this player as a friend.", TextColor.color(255, 0, 0)));
                 return;
             }
@@ -105,7 +99,7 @@ public class FriendCommand implements SimpleCommand {
         }
 
         try {
-            FriendDBManager.markAsFriend(mySQL, key[0], key[1]);
+            FriendDBManager.markAsFriend(key[0], key[1]);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -156,10 +150,15 @@ public class FriendCommand implements SimpleCommand {
         out.writeUTF("MakeGUI");
         out.writeUTF(playerUUID);
 
-        Player p = FriendsVelocityPlugin.getInstance().getServer().getPlayer(UUID.fromString(playerUUID)).get();
+        Optional<Player> pOpt = FriendsVelocityPlugin.getInstance().getServer().getPlayer(UUID.fromString(playerUUID));
+        if (pOpt.isEmpty()) {
+            return;
+        }
 
+        Player p = pOpt.get();
         //Handled in com.grubnest.game.friends.paper.commands.friend.FriendMessageListener:onPluginMessageReceived()
-        p.getCurrentServer().get().sendPluginMessage(this.identifier, out.toByteArray());
+        Optional<ServerConnection> server = p.getCurrentServer();
+        server.ifPresent(serverConnection -> serverConnection.sendPluginMessage(this.identifier, out.toByteArray()));
     }
 
     /**
@@ -241,7 +240,7 @@ public class FriendCommand implements SimpleCommand {
                         UUID friendUUID = UUID.fromString(in.readUTF());
                         Optional<Player> friend = FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID);
 
-                        boolean mutual = FriendDBManager.isFriendAlready(this.plugin.getMySQL(), friendUUID.toString(), playerUUID.toString());
+                        boolean mutual = FriendDBManager.isFriendAlready(friendUUID.toString(), playerUUID.toString());
                         String server =
                                 mutual ?
                                         friend.isPresent() ? friend.get().getCurrentServer().get().getServerInfo().getName() : "Offline"
