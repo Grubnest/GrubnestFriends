@@ -5,6 +5,7 @@ import com.google.common.io.ByteStreams;
 import com.grubnest.game.core.databasehandler.utils.DataUtils;
 import com.grubnest.game.friends.paper.FriendsBukkitPlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -276,8 +277,8 @@ public class FriendGUI implements Listener {
 
         if (clickedItem.getType() == Material.PLAYER_HEAD) {
             if (Objects.requireNonNull(Objects.requireNonNull(clickedItem.getItemMeta()).getLore()).get(0).toLowerCase().contains("hidden")) {
-                p.sendMessage("This player has not added you to their friends list.");
-                p.sendMessage("If you want to be able to join your friend's server, they have to mark you as a friend too.");
+                p.sendMessage(ChatColor.RED + "This player has not added you to their friends list.");
+                p.sendMessage(ChatColor.RED + "If you want to be able to join your friend's server, they have to mark you as a friend too.");
                 return;
             }
 

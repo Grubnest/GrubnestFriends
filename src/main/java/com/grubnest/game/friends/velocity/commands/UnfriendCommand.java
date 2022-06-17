@@ -25,7 +25,8 @@ public class UnfriendCommand implements SimpleCommand {
     /**
      * Singleton constructor
      */
-    private UnfriendCommand() {}
+    private UnfriendCommand() {
+    }
 
     /**
      * What should be executed
@@ -54,7 +55,7 @@ public class UnfriendCommand implements SimpleCommand {
         Optional<UUID> toRemoveUUIDOpt;
         toRemoveUUIDOpt = DataUtils.getIDFromUsername(args[0]);
         if (toRemoveUUIDOpt.isEmpty()) {
-            sender.sendMessage(Component.text("Couldn't find this player", TextColor.color(210, 184, 139)));
+            sender.sendMessage(Component.text("Couldn't find this player", TextColor.color(255, 0, 0)));
             return;
         }
 
@@ -76,7 +77,7 @@ public class UnfriendCommand implements SimpleCommand {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        sender.sendMessage(Component.text("Removed from your friends list!", TextColor.color(100, 224, 114)));
+        sender.sendMessage(Component.text("Removed from your friends list!", TextColor.color(0, 255, 0)));
     }
 
     /**

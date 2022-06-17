@@ -2,11 +2,10 @@ package com.grubnest.game.friends.paper.commands.friend;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
-import com.grubnest.game.core.databasehandler.DatabaseManager;
-import com.grubnest.game.core.paper.GrubnestCorePlugin;
 import com.grubnest.game.friends.database.FriendDBManager;
 import com.grubnest.game.friends.paper.FriendsBukkitPlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +58,7 @@ public class FriendMessageListener implements PluginMessageListener {
 
             if (friends.isEmpty()) {
                 Player p = Bukkit.getPlayer(playerUUID);
-                Objects.requireNonNull(p).sendMessage("You don't have any friends, do /friend <player> to add someone to your friends list.");
+                Objects.requireNonNull(p).sendMessage(ChatColor.RED + "You don't have any friends, do /friend <player> to add someone to your friends list.");
                 return;
             }
 

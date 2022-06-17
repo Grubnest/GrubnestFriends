@@ -3,7 +3,6 @@ package com.grubnest.game.friends.velocity.commands;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import com.grubnest.game.core.databasehandler.DatabaseManager;
 import com.grubnest.game.core.databasehandler.utils.DataUtils;
 import com.grubnest.game.friends.database.FriendDBManager;
 import com.grubnest.game.friends.velocity.FriendsVelocityPlugin;
@@ -79,7 +78,7 @@ public class FriendCommand implements SimpleCommand {
         Optional<UUID> friendUUIDOpt;
         friendUUIDOpt = DataUtils.getIDFromUsername(args[0]);
         if (friendUUIDOpt.isEmpty()) {
-            sender.sendMessage(Component.text("Couldn't find this player", TextColor.color(210, 184, 139)));
+            sender.sendMessage(Component.text("Couldn't find this player", TextColor.color(255, 0, 0)));
             return;
         }
 
@@ -103,7 +102,7 @@ public class FriendCommand implements SimpleCommand {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        sender.sendMessage(Component.text("Added to your friends list!", TextColor.color(100, 224, 114)));
+        sender.sendMessage(Component.text("Added to your friends list!", TextColor.color(0, 255, 0)));
 
         if (!cooldowns.containsKey(Arrays.toString(key))) {
             sendFriendNotification(sender, FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID));
@@ -125,7 +124,7 @@ public class FriendCommand implements SimpleCommand {
             key[1] = receiver.get().getUniqueId().toString();
             receiver.get().sendMessage(
                     Component.text(sender.getUsername(), TextColor.color(100, 224, 195))
-                            .append(Component.text(" added you as a friend!", TextColor.color(100, 224, 114)))
+                            .append(Component.text(" added you as a friend!", TextColor.color(0, 255, 0)))
             );
             cooldowns.put(Arrays.toString(key), new Date());
             FriendsVelocityPlugin.getInstance().getServer().getScheduler()
@@ -200,11 +199,15 @@ public class FriendCommand implements SimpleCommand {
             return;
         }
         // Could also instead be
-        if (event.getSource() instanceof ServerConnection) {
-            ByteArrayDataInput in = event.dataAsDataStream();
+        if (!(event.getSource() instanceof ServerConnection)) {
+            return;
+        }
 
-            String subChannel = in.readUTF();
-            if (subChannel.equals("Join")) {
+        ByteArrayDataInput in = event.dataAsDataStream();
+        String subChannel = in.readUTF();
+
+        switch (subChannel) {
+            case "Join" -> {
                 UUID playerUUID = UUID.fromString(in.readUTF());
                 Optional<Player> optPlayer = FriendsVelocityPlugin.getInstance().getServer().getPlayer(playerUUID);
                 if (optPlayer.isEmpty()) {
@@ -214,20 +217,24 @@ public class FriendCommand implements SimpleCommand {
 
                 UUID friendUUID = UUID.fromString(in.readUTF());
                 Optional<Player> optFriend = FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID);
-                if (optFriend.isPresent()) {
-                    Player friend = optFriend.get();
-                    Optional<ServerConnection> optServer = friend.getCurrentServer();
-                    if (optServer.isPresent()) {
-                        ServerConnection friendServer = optServer.get();
-                        p.createConnectionRequest(friendServer.getServer()).connect();
-                    } else {
-                        FriendsVelocityPlugin.getInstance().getLogger().info("Error: could not find server. (FriendCommand)");
-                    }
-                } else {
-                    p.sendMessage(Component.text("Error: your friend is offline."));
+
+                if (optFriend.isEmpty()) {
+                    p.sendMessage(Component.text("Error: your friend is offline.", TextColor.color(255, 0, 0)));
+                    return;
                 }
-            } else if (subChannel.equals("GetServersNames")) {
-                //FriendsVelocityPlugin.getInstance().getLogger().info("Getting servers names");
+
+                Player friend = optFriend.get();
+                Optional<ServerConnection> optServer = friend.getCurrentServer();
+
+                if (optServer.isEmpty()) {
+                    FriendsVelocityPlugin.getInstance().getLogger().info("Error: could not find server. (FriendCommand)");
+                    return;
+                }
+
+                ServerConnection friendServer = optServer.get();
+                p.createConnectionRequest(friendServer.getServer()).connect();
+            }
+            case "GetServersNames" -> {
                 UUID playerUUID = UUID.fromString(in.readUTF());
 
                 ByteArrayDataOutput out = ByteStreams.newDataOutput();
@@ -239,26 +246,44 @@ public class FriendCommand implements SimpleCommand {
                     try {
                         UUID friendUUID = UUID.fromString(in.readUTF());
                         Optional<Player> friend = FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID);
-
                         boolean mutual = FriendDBManager.isFriendAlready(friendUUID.toString(), playerUUID.toString());
-                        String server =
-                                mutual ?
-                                        friend.isPresent() ? friend.get().getCurrentServer().get().getServerInfo().getName() : "Offline"
-                                        : "Hidden";
+
+                        String server;
+
+                        if (!mutual) {
+                            server = "Hidden";
+                        } else if (friend.isEmpty()) {
+                            server = "Offline";
+                        } else {
+                            Optional<ServerConnection> friendServerOpt = friend.get().getCurrentServer();
+                            server = friendServerOpt.isEmpty() ? "Unknown server" : friendServerOpt.get().getServerInfo().getName();
+                        }
+
                         out.writeUTF(server);
                     } catch (Exception e) {
                         valid = false;
                     }
                 }
 
-                Player p = FriendsVelocityPlugin.getInstance().getServer().getPlayer(playerUUID).get();
+                Optional<Player> pOpt = FriendsVelocityPlugin.getInstance().getServer().getPlayer(playerUUID);
+                if (pOpt.isEmpty()) {
+                    return;
+                }
+
+                Player p = pOpt.get();
+
+                Optional<ServerConnection> serverOpt = p.getCurrentServer();
+                if (serverOpt.isEmpty()) {
+                    return;
+                }
 
                 //Handled in com.grubnest.game.friends.paper.commands.friend.FriendMessageListener:onPluginMessageReceived()
-                p.getCurrentServer().get().sendPluginMessage(identifier, out.toByteArray());
-            } else {
-                FriendsVelocityPlugin.getInstance().getLogger().info("Received an unknown subchannel in core:friendcommand");
+                serverOpt.get().sendPluginMessage(identifier, out.toByteArray());
             }
+            default ->
+                    FriendsVelocityPlugin.getInstance().getLogger().info("Received an unknown subchannel in core:friendcommand");
         }
+
     }
 
     /**

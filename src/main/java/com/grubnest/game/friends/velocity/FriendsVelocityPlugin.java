@@ -19,8 +19,8 @@ import java.sql.SQLException;
  * @author NevaZyo
  * @version 1.0 at 06/01/2022
  */
-@Plugin(id="grubnestfriends", name="Grubnest Friends Plugin", version="0.1.0-SNAPSHOT",
-        url="https://grubnest.com", description="Grubnest Friends running on Velocity", authors={"NevaZyo"})
+@Plugin(id = "grubnestfriends", name = "Grubnest Friends Plugin", version = "0.1.0-SNAPSHOT",
+        url = "https://grubnest.com", description = "Grubnest Friends running on Velocity", authors = {"NevaZyo"})
 public class FriendsVelocityPlugin {
 
     private final ProxyServer server;

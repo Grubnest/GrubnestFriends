@@ -22,18 +22,17 @@ public interface FriendDBManager {
 
     /**
      * Creates a new table in the database if not already created
-     *
      */
     static void createTable() throws SQLException {
         try (
                 Connection connection = DatabaseManager.getInstance().getMySQL().getConnection();
                 PreparedStatement statement = connection.prepareStatement("""
-                    CREATE TABLE IF NOT EXISTS `friend` (
-                        player_uuid varchar(36),
-                        friend_uuid varchar(36),
-                        PRIMARY KEY (player_uuid, friend_uuid)
-                    )
-                    """)
+                        CREATE TABLE IF NOT EXISTS `friend` (
+                            player_uuid varchar(36),
+                            friend_uuid varchar(36),
+                            PRIMARY KEY (player_uuid, friend_uuid)
+                        )
+                        """)
         ) {
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -132,19 +131,23 @@ public interface FriendDBManager {
                 FROM friend
                 WHERE player_uuid=?
                 """;
-        List<UUID> friendsUUIDs = new ArrayList<>();
+        List<UUID> friendsUUIDs = null;
         try (
                 Connection connection = DatabaseManager.getInstance().getMySQL().getConnection();
                 PreparedStatement statement = connection.prepareStatement(query)
         ) {
             statement.setString(1, playerUUID);
             ResultSet rows = statement.executeQuery();
-            while (rows.next())
+            while (rows.next()) {
+                if (friendsUUIDs == null) {
+                    friendsUUIDs = new ArrayList<>();
+                }
                 friendsUUIDs.add(UUID.fromString(rows.getString("friend_uuid")));
+            }
         } catch (SQLException e) {
             throw new SQLException("Error while trying to get the friends list of a player");
         }
-        return Optional.of(friendsUUIDs);
+        return Optional.ofNullable(friendsUUIDs);
     }
 
 }
