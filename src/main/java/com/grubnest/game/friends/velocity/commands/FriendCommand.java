@@ -4,7 +4,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.grubnest.game.core.databasehandler.utils.DataUtils;
-import com.grubnest.game.friends.database.FriendDBManager;
+import com.grubnest.game.friends.api.FriendsAPI;
 import com.grubnest.game.friends.velocity.FriendsVelocityPlugin;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
@@ -89,7 +89,7 @@ public class FriendCommand implements SimpleCommand {
         key[1] = friendUUID.toString();
 
         try {
-            if (FriendDBManager.isFriendAlready(key[0], key[1])) {
+            if (FriendsAPI.isFriendAlready(key[0], key[1])) {
                 sender.sendMessage(Component.text("You've already marked this player as a friend.", TextColor.color(255, 0, 0)));
                 return;
             }
@@ -98,7 +98,7 @@ public class FriendCommand implements SimpleCommand {
         }
 
         try {
-            FriendDBManager.markAsFriend(key[0], key[1]);
+            FriendsAPI.markAsFriend(key[0], key[1]);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -246,7 +246,7 @@ public class FriendCommand implements SimpleCommand {
                     try {
                         UUID friendUUID = UUID.fromString(in.readUTF());
                         Optional<Player> friend = FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID);
-                        boolean mutual = FriendDBManager.isFriendAlready(friendUUID.toString(), playerUUID.toString());
+                        boolean mutual = FriendsAPI.isFriendAlready(friendUUID.toString(), playerUUID.toString());
 
                         String server;
 

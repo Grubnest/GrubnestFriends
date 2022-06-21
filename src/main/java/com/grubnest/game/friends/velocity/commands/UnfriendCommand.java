@@ -1,7 +1,7 @@
 package com.grubnest.game.friends.velocity.commands;
 
 import com.grubnest.game.core.databasehandler.utils.DataUtils;
-import com.grubnest.game.friends.database.FriendDBManager;
+import com.grubnest.game.friends.api.FriendsAPI;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
@@ -64,7 +64,7 @@ public class UnfriendCommand implements SimpleCommand {
         key[1] = toRemoveUUIDOpt.get().toString();
 
         try {
-            if (!FriendDBManager.isFriendAlready(key[0], key[1])) {
+            if (!FriendsAPI.isFriendAlready(key[0], key[1])) {
                 sender.sendMessage(Component.text("This player isn't in your friends list.", TextColor.color(255, 0, 0)));
                 return;
             }
@@ -73,7 +73,7 @@ public class UnfriendCommand implements SimpleCommand {
         }
 
         try {
-            FriendDBManager.removeFromFriendDB(key[0], key[1]);
+            FriendsAPI.removeFromFriendDB(key[0], key[1]);
         } catch (SQLException e) {
             e.printStackTrace();
         }

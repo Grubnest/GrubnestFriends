@@ -2,7 +2,7 @@ package com.grubnest.game.friends.paper.commands.friend;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
-import com.grubnest.game.friends.database.FriendDBManager;
+import com.grubnest.game.friends.api.FriendsAPI;
 import com.grubnest.game.friends.paper.FriendsBukkitPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -51,7 +51,7 @@ public class FriendMessageListener implements PluginMessageListener {
 
             Optional<List<UUID>> friends = Optional.empty();
             try {
-                friends = FriendDBManager.getFriendsUUIDs(playerUUID.toString());
+                friends = FriendsAPI.getFriendsUUIDs(playerUUID.toString());
             } catch (SQLException e) {
                 e.printStackTrace();
             }
