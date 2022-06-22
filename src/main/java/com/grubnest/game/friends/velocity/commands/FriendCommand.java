@@ -78,7 +78,7 @@ public class FriendCommand implements SimpleCommand {
         Optional<UUID> friendUUIDOpt;
         friendUUIDOpt = DataUtils.getIDFromUsername(args[0]);
         if (friendUUIDOpt.isEmpty()) {
-            sender.sendMessage(Component.text("Couldn't find this player", TextColor.color(255, 0, 0)));
+            sender.sendMessage(Component.text("Couldn't find this player.", TextColor.color(255, 85, 85)));
             return;
         }
 
@@ -90,7 +90,7 @@ public class FriendCommand implements SimpleCommand {
 
         try {
             if (FriendsAPI.isFriendAlready(key[0], key[1])) {
-                sender.sendMessage(Component.text("You've already marked this player as a friend.", TextColor.color(255, 0, 0)));
+                sender.sendMessage(Component.text("You've already marked this player as a friend.", TextColor.color(255, 85, 85)));
                 return;
             }
         } catch (SQLException e) {
@@ -102,7 +102,7 @@ public class FriendCommand implements SimpleCommand {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        sender.sendMessage(Component.text("Added to your friends list!", TextColor.color(0, 255, 0)));
+        sender.sendMessage(Component.text("Added to your friends list!", TextColor.color(85, 255, 85)));
 
         if (!cooldowns.containsKey(Arrays.toString(key))) {
             sendFriendNotification(sender, FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID));
@@ -123,8 +123,8 @@ public class FriendCommand implements SimpleCommand {
             key[0] = sender.getUniqueId().toString();
             key[1] = receiver.get().getUniqueId().toString();
             receiver.get().sendMessage(
-                    Component.text(sender.getUsername(), TextColor.color(100, 224, 195))
-                            .append(Component.text(" added you as a friend!", TextColor.color(0, 255, 0)))
+                    Component.text(sender.getUsername(), TextColor.color(85, 255, 255))
+                            .append(Component.text(" added you as a friend!", TextColor.color(0, 170, 170)))
             );
             cooldowns.put(Arrays.toString(key), new Date());
             FriendsVelocityPlugin.getInstance().getServer().getScheduler()
@@ -219,7 +219,7 @@ public class FriendCommand implements SimpleCommand {
                 Optional<Player> optFriend = FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID);
 
                 if (optFriend.isEmpty()) {
-                    p.sendMessage(Component.text("Error: your friend is offline.", TextColor.color(255, 0, 0)));
+                    p.sendMessage(Component.text("Error: your friend is offline.", TextColor.color(255, 85, 85)));
                     return;
                 }
 

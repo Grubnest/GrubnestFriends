@@ -48,14 +48,14 @@ public class UnfriendCommand implements SimpleCommand {
         }
 
         if (args.length == 0) {
-            sender.sendMessage(Component.text("Please provide a player to remove from your friends.", TextColor.color(255, 0, 0)));
+            sender.sendMessage(Component.text("Please provide a player to remove from your friends.", TextColor.color(255, 85, 85)));
             return;
         }
 
         Optional<UUID> toRemoveUUIDOpt;
         toRemoveUUIDOpt = DataUtils.getIDFromUsername(args[0]);
         if (toRemoveUUIDOpt.isEmpty()) {
-            sender.sendMessage(Component.text("Couldn't find this player", TextColor.color(255, 0, 0)));
+            sender.sendMessage(Component.text("Couldn't find this player.", TextColor.color(255, 85, 85)));
             return;
         }
 
@@ -65,7 +65,7 @@ public class UnfriendCommand implements SimpleCommand {
 
         try {
             if (!FriendsAPI.isFriendAlready(key[0], key[1])) {
-                sender.sendMessage(Component.text("This player isn't in your friends list.", TextColor.color(255, 0, 0)));
+                sender.sendMessage(Component.text("This player isn't in your friends list.", TextColor.color(255, 85, 85)));
                 return;
             }
         } catch (SQLException e) {
@@ -77,7 +77,7 @@ public class UnfriendCommand implements SimpleCommand {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        sender.sendMessage(Component.text("Removed from your friends list!", TextColor.color(0, 255, 0)));
+        sender.sendMessage(Component.text("Removed from your friends list!", TextColor.color(85, 255, 85)));
     }
 
     /**
