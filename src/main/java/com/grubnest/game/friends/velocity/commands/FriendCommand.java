@@ -130,7 +130,6 @@ public class FriendCommand implements SimpleCommand {
             FriendsVelocityPlugin.getInstance().getServer().getScheduler()
                     .buildTask(FriendsVelocityPlugin.getInstance(), () -> {
                         cooldowns.remove(Arrays.toString(key));
-                        sender.sendMessage(Component.text("Removed key " + Arrays.toString(key) + " from cooldown"));
                     })
                     .delay(10L, TimeUnit.SECONDS)
                     .schedule();
