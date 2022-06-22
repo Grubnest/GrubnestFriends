@@ -2,23 +2,33 @@ package com.grubnest.game.friends.paper.commands.friend;
 
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
-import com.grubnest.game.core.paper.GrubnestCorePlugin;
-import com.grubnest.game.friends.database.FriendDBManager;
+import com.grubnest.game.friends.api.FriendsAPI;
 import com.grubnest.game.friends.paper.FriendsBukkitPlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
 import java.util.*;
 
-public class FriendMessageListener implements PluginMessageListener
-{
+/**
+ * The FriendMessageListener class is used to receive and send requests to the proxy-side of the plugin
+ *
+ * @author NevaZyo
+ * @version 1.0 at 06/01/2022
+ */
+public class FriendMessageListener implements PluginMessageListener {
 
     private static FriendMessageListener INSTANCE;
     private final HashMap<UUID, FriendGUI> guis = new HashMap<>();
 
-    private FriendMessageListener() {}
+    /**
+     * Private constructor (singleton)
+     */
+    private FriendMessageListener() {
+    }
 
     /**
      * Triggered when a message is received on the channel "core:friendcommand" using Plugin Messaging
@@ -28,54 +38,45 @@ public class FriendMessageListener implements PluginMessageListener
      * @param message The raw message that was sent.
      */
     @Override
-    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message)
-    {
-        if (!channel.equals("core:friendcommand")) return;
+    public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, @NotNull byte[] message) {
+        if (!channel.equals("core:friendcommand")) {
+            return;
+        }
 
         ByteArrayDataInput in = ByteStreams.newDataInput(message);
 
         String subChannel = in.readUTF();
-        if (subChannel.equals("MakeGUI"))
-        {
-            //Bukkit.broadcastMessage("Making GUI");
+        if (subChannel.equals("MakeGUI")) {
             UUID playerUUID = UUID.fromString(in.readUTF());
 
-            List<UUID> friends = FriendDBManager.getFriendsUUIDs(GrubnestCorePlugin.getInstance().getMySQL(), playerUUID.toString());
-            /*List<UUID> friends = new ArrayList<>();
-            for (int i=0; i<213; i++)
-            {
-                friends.add(UUID.randomUUID());
-            }*/
+            Optional<List<UUID>> friends = Optional.empty();
+            try {
+                friends = FriendsAPI.getFriendsUUIDs(playerUUID.toString());
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
 
-            Player p = Bukkit.getPlayer(playerUUID);
-            if (friends.isEmpty())
-            {
-                Objects.requireNonNull(p).sendMessage("You don't have any friend, do /friend <player> to add someone to your friends list.");
+            if (friends.isEmpty()) {
+                Player p = Bukkit.getPlayer(playerUUID);
+                Objects.requireNonNull(p).sendMessage(ChatColor.RED + "You don't have any friends, do /friend <player> to add someone to your friends list.");
                 return;
             }
 
-            guis.put(playerUUID, new FriendGUI(playerUUID, friends));
-        }
-        else if (subChannel.equals("UpdateServersNames"))
-        {
-            //Bukkit.broadcastMessage("Updating servers names");
+            guis.put(playerUUID, new FriendGUI(playerUUID, friends.get()));
+        } else if (subChannel.equals("UpdateServersNames")) {
             UUID playerUUID = UUID.fromString(in.readUTF());
             List<String> serversNames = new ArrayList<>();
             boolean valid = true;
-            while (valid)
-            {
+            while (valid) {
                 try {
                     String server = in.readUTF();
                     serversNames.add(server);
-                }catch(Exception e)
-                {
+                } catch (Exception e) {
                     valid = false;
                 }
             }
             this.getOpenedGUIs().get(playerUUID).setCurrentPageServers(serversNames);
-        }
-        else
-        {
+        } else {
             FriendsBukkitPlugin.getInstance().getLogger().info("ERROR: Read an unknown category name from PluginMessaging in core:friendcommand");
         }
     }
@@ -85,21 +86,18 @@ public class FriendMessageListener implements PluginMessageListener
      *
      * @return the instance (singleton)
      */
-    public static FriendMessageListener getInstance()
-    {
+    public static FriendMessageListener getInstance() {
         if (INSTANCE == null)
             INSTANCE = new FriendMessageListener();
         return INSTANCE;
     }
-
 
     /**
      * Basic getter
      *
      * @return a map containing every opened GUIs and their owner
      */
-    public HashMap<UUID, FriendGUI> getOpenedGUIs()
-    {
+    public HashMap<UUID, FriendGUI> getOpenedGUIs() {
         return this.guis;
     }
 }

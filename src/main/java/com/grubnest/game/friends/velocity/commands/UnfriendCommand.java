@@ -1,32 +1,31 @@
 package com.grubnest.game.friends.velocity.commands;
 
-import com.grubnest.game.core.databasehandler.MySQL;
-import com.grubnest.game.core.velocity.VelocityPlugin;
-import com.grubnest.game.friends.database.FriendDBManager;
-import com.grubnest.game.friends.database.PlayerDBManager;
-import com.grubnest.game.friends.velocity.FriendsVelocityPlugin;
+import com.grubnest.game.core.databasehandler.utils.DataUtils;
+import com.grubnest.game.friends.api.FriendsAPI;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.SQLException;
+import java.util.Optional;
 import java.util.UUID;
 
-public class UnfriendCommand implements SimpleCommand
-{
+/**
+ * The UnfriendCommand class allows the player to remove another player from their friends list
+ *
+ * @author NevaZyo
+ * @version 1.0 at 06/01/2022
+ */
+public class UnfriendCommand implements SimpleCommand {
 
     private static UnfriendCommand INSTANCE = null;
-    private final VelocityPlugin plugin;
 
     /**
      * Singleton constructor
      */
-    private UnfriendCommand()
-    {
-        this.plugin = VelocityPlugin.getInstance();
+    private UnfriendCommand() {
     }
 
     /**
@@ -37,82 +36,55 @@ public class UnfriendCommand implements SimpleCommand
     @Override
     public void execute(Invocation invocation) {
 
-        final MySQL mySQL = this.plugin.getMySQL();
         final CommandSource source = invocation.source();
         if (!(source instanceof Player)) return;
 
         Player sender = (Player) source;
 
         String[] args = invocation.arguments();
-        if (args.length > 1)
-        {
+        if (args.length > 1) {
             sender.sendMessage(Component.text("Too many arguments"));
             return;
         }
 
-        if (args.length == 0)
-        {
-            sender.sendMessage(Component.text("Please provide a player to remove from your friends.", TextColor.color(255, 0, 0)));
+        if (args.length == 0) {
+            sender.sendMessage(Component.text("Please provide a player to remove from your friends.", TextColor.color(255, 85, 85)));
             return;
         }
 
-        UUID toRemoveUUID = PlayerDBManager.getUUIDFromUsername(mySQL, args[0]);
-        if (toRemoveUUID == null)
-        {
-            sender.sendMessage(Component.text("Couldn't find this player", TextColor.color(210, 184, 139)));
+        Optional<UUID> toRemoveUUIDOpt;
+        toRemoveUUIDOpt = DataUtils.getIDFromUsername(args[0]);
+        if (toRemoveUUIDOpt.isEmpty()) {
+            sender.sendMessage(Component.text("Couldn't find this player.", TextColor.color(255, 85, 85)));
             return;
         }
 
         String[] key = new String[2];
         key[0] = sender.getUniqueId().toString();
-        key[1] = toRemoveUUID.toString();
+        key[1] = toRemoveUUIDOpt.get().toString();
 
-        if (!FriendDBManager.isFriendAlready(mySQL, key[0], key[1]))
-        {
-            sender.sendMessage(Component.text("This player isn't in your friends list.", TextColor.color(255, 0, 0)));
-            return;
+        try {
+            if (!FriendsAPI.isFriendAlready(key[0], key[1])) {
+                sender.sendMessage(Component.text("This player isn't in your friends list.", TextColor.color(255, 85, 85)));
+                return;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
-        FriendDBManager.removeFromFriendDB(mySQL, key[0], key[1]);
-        sender.sendMessage(Component.text("Removed from your friends list!", TextColor.color(100, 224, 114)));
+        try {
+            FriendsAPI.removeFromFriendDB(key[0], key[1]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        sender.sendMessage(Component.text("Removed from your friends list!", TextColor.color(85, 255, 85)));
     }
 
     /**
-     * @param invocation the invocation context
-     * @return list of suggestions, here: all the players connected on the proxy
+     * @return the class instance (singleton)
      */
-    @Override
-    public List<String> suggest(Invocation invocation)
-    {
-        if (invocation.arguments().length == 1)
-        {
-            List<String> names = new ArrayList<>();
-            for (Player p : FriendsVelocityPlugin.getInstance().getServer().getAllPlayers())
-                names.add(p.getUsername());
-            return names;
-            //return new ArrayList<>(getFriendsNames(getFriendsUUIDs(sender.getUniqueId().toString())));
-        }
-        return SimpleCommand.super.suggest(invocation);
-    }
-
-    /**
-     * Tries to get the player's friends names
-     *
-     * @param friendsUUIDs list containing the player's friends UUIDs
-     * @return list containing the player's friends names
-     */
-    private List<String> getFriendsNames(List<UUID> friendsUUIDs)
-    {
-        List<String> friendsNames = new ArrayList<>();
-        for (UUID uuid : friendsUUIDs)
-            friendsNames.add(PlayerDBManager.getUsernameFromUUID(this.plugin.getMySQL(), uuid));
-        return friendsNames;
-    }
-
-    public static UnfriendCommand getInstance()
-    {
-        if (INSTANCE == null)
-        {
+    public static UnfriendCommand getInstance() {
+        if (INSTANCE == null) {
             INSTANCE = new UnfriendCommand();
         }
         return INSTANCE;
