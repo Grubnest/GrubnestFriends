@@ -106,9 +106,21 @@ public class FriendCommand implements SimpleCommand {
 
         if (!cooldowns.containsKey(Arrays.toString(key))) {
             sendFriendNotification(sender, FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID));
-        } else if ((new Date().getTime() - cooldowns.get(Arrays.toString(key)).getTime()) / 1000 >= 10) {
+        } else if (getDateDiff(cooldowns.get(Arrays.toString(key)), new Date()) >= 10) {
             sendFriendNotification(sender, FriendsVelocityPlugin.getInstance().getServer().getPlayer(friendUUID));
         }
+    }
+
+    /**
+     * Get a diff between two dates
+     *
+     * @param date1 the oldest date
+     * @param date2 the newest date
+     * @return the diff value, in the provided unit
+     */
+    private long getDateDiff(Date date1, Date date2) {
+        long diffInMillies = date2.getTime() - date1.getTime();
+        return TimeUnit.MINUTES.convert(diffInMillies, TimeUnit.MILLISECONDS);
     }
 
     /**
