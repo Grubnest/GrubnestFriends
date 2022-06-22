@@ -131,7 +131,7 @@ public class FriendCommand implements SimpleCommand {
                     .buildTask(FriendsVelocityPlugin.getInstance(), () -> {
                         cooldowns.remove(Arrays.toString(key));
                     })
-                    .delay(10L, TimeUnit.SECONDS)
+                    .delay(10L, TimeUnit.MINUTES)
                     .schedule();
         }
     }
