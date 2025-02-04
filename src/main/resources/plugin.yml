@@ -1,0 +1,6 @@
+name: GrubnestFriends
+main: com.grubnest.game.friends.paper.FriendsBukkitPlugin
+version: 1.0
+authors:
+  - NevaZyo
+api-version: 1.18
